@@ -4,5 +4,4 @@
 
 # 运行
 
-    $ docker run -it go-demo:v1
-
+    $ docker run -it -v /etc/localtime:/etc/localtime :ro go-demo:v1
