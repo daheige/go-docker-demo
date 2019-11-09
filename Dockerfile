@@ -1,9 +1,7 @@
 FROM golang:1.13.4 AS go-builder
 
-# 设置环境变量和解决中文乱码问题
-# 禁用CGO,开启go mod机制
-ENV LANG="zh_CN.UTF-8"  \ 
-    GO111MODULE=on CGO_ENABLED=0 \
+# 设置golang环境变量和禁用CGO,开启go mod机制
+ENV  GO111MODULE=on CGO_ENABLED=0 \
     GOPROXY=https://goproxy.cn,https://mirrors.aliyun.com/goproxy/,direct
 
 WORKDIR /mygo
@@ -14,17 +12,18 @@ RUN go build -o go-demo
 
 FROM alpine:3.10
 
-# 解决时区和包依赖，http x509证书问题
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-    && echo 'Asia/Shanghai' >/etc/timezone \
-    && echo "export LC_ALL=zh_CN.UTF-8"  >>  /etc/profile \
+#解决docker时区问题和中文乱码问题
+ENV TZ=Asia/Shanghai LANG="zh_CN.UTF-8" 
+
+# 解决http x509证书问题，需要安装证书
+RUN echo "export LC_ALL=$LANG"  >>  /etc/profile \
     && echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.10/main/" > /etc/apk/repositories \
     && apk update \
     && apk upgrade \
-    && apk add --no-cache ca-certificates bash vim \
-    bash-doc \
-    bash-completion curl \
-    && rm -rf /var/cache/apk/*
+    && apk --no-cache add tzdata ca-certificates bash vim bash-doc bash-completion curl \
+    && ln -snf  /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* $HOME/.cache
 
 WORKDIR /mygo
 
