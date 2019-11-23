@@ -70,3 +70,12 @@
     /usr/local/go/src/runtime/malloc.go
     
       Total:        20ms      1.65s (flat, cum)  0.66%
+      
+    压力测试过程中发现，log打印到终端也是枷锁的
+    log.(*Logger).Output
+    /usr/local/go/src/log/log.go
+    
+    Total:       7.71s      8.31s (flat, cum) 26.51%
+    153        640ms      640ms           	l.mu.Lock() 
+    154         80ms       80ms           	defer l.mu.Unlock() 
+    所以对于线上来说，一般建议把log.Println这样的语句注释掉

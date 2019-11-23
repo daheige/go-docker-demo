@@ -38,10 +38,21 @@ func main() {
 
 	port := 8080
 	server := &http.Server{
-		Handler:      mux,
-		Addr:         fmt.Sprintf("0.0.0.0:%d", port),
+		Handler: mux,
+		Addr:    fmt.Sprintf("0.0.0.0:%d", port),
+
+		// ReadHeaderTimeout is the amount of time allowed to read
+		// request headers. The connection's read deadline is reset
+		// after reading the headers and the Handler can decide what
+		// is considered too slow for the body. If ReadHeaderTimeout
+		// is zero, the value of ReadTimeout is used. If both are
+		// zero, there is no timeout.
+		ReadHeaderTimeout: 5 * time.Second,
+
+		// 已经包含了读取header头部分
 		ReadTimeout:  5 * time.Second,  //read request timeout
 		WriteTimeout: 10 * time.Second, //write timeout
+		IdleTimeout:  20 * time.Second,
 	}
 
 	go func() {
