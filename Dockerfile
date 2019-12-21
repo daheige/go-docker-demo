@@ -1,4 +1,4 @@
-FROM golang:1.13.4 AS go-builder
+FROM golang:1.13.5 AS go-builder
 
 # 设置golang环境变量和禁用CGO,开启go mod机制
 ENV  GO111MODULE=on CGO_ENABLED=0 \
@@ -26,6 +26,8 @@ RUN echo "export LC_ALL=$LANG"  >>  /etc/profile \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* $HOME/.cache
 
 WORKDIR /mygo
+
+EXPOSE 1338 2338
 
 COPY --from=go-builder /mygo/go-demo .
 

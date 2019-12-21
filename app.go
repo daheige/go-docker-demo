@@ -36,7 +36,7 @@ func main() {
 
 	mux.HandleFunc("/hello", hello)
 
-	port := 8080
+	port := 1338
 	server := &http.Server{
 		Handler: mux,
 		Addr:    fmt.Sprintf("0.0.0.0:%d", port),
@@ -89,16 +89,26 @@ func main() {
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
-	log.Println(111)
+	// log.Println(111)
 	userInfo := getUserInfo()
 
+	//模拟赋值操作
+	info := make([]User, 0, len(userInfo))
 	for k, _ := range userInfo {
-		log.Println(userInfo[k].Id, userInfo[k].Name, userInfo[k].Age)
+		info = append(info, User{
+			Id:      userInfo[k].Id,
+			Name:    userInfo[k].Name,
+			Age:     userInfo[k].Age,
+			Content: userInfo[k].Content,
+		})
 	}
 
-	b, _ := json.Marshal(userInfo)
+	//对map进行主动gc
+	userInfo = nil
 
-	time.Sleep(10 * time.Millisecond)
+	b, _ := json.Marshal(info)
+
+	// time.Sleep(10 * time.Millisecond)
 
 	w.Write(b)
 }

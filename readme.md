@@ -4,12 +4,12 @@
 
 # 运行
 
-    $ docker run -it go-demo:v1
+    $ docker run -it -p 1338:1338 -p 2338:2338 go-demo:v1
 
 # 压力测试
     
-    $ wrk -t 8 -d 2m -c 1000 --timeout 2 --latency http://localhost:8080/hello
-    Running 2m test @ http://localhost:8080/hello
+    $ wrk -t 8 -d 2m -c 1000 --timeout 2 --latency http://localhost:1338/hello
+    Running 2m test @ http://localhost:1338/hello
       8 threads and 1000 connections
       Thread Stats   Avg      Stdev     Max   +/- Stdev
         Latency     1.16s   571.43ms   2.00s    63.81%
@@ -79,3 +79,45 @@
     153        640ms      640ms           	l.mu.Lock() 
     154         80ms       80ms           	defer l.mu.Unlock() 
     所以对于线上来说，一般建议把log.Println这样的语句注释掉
+    
+    //对map进行主动gc
+    userInfo = nil
+    $ wrk -t 8  -c 400 -d 20 --timeout 2 --latency http://localhost:1338/hello
+    Running 20s test @ http://localhost:1338/hello
+      8 threads and 400 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   573.62ms   74.94ms 703.33ms   89.62%
+        Req/Sec    86.63     56.33   313.00     65.30%
+      Latency Distribution
+         50%  588.65ms
+         75%  599.12ms
+         90%  611.71ms
+         99%  670.86ms
+      13492 requests in 20.06s, 2.96GB read
+    Requests/sec:    672.45
+    Transfer/sec:    151.17MB
+    
+    $ wrk -t 8  -c 400 -d 20 --timeout 2 --latency http://localhost:1338/hello
+    Running 20s test @ http://localhost:1338/hello
+      8 threads and 400 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   245.79ms  288.25ms   2.00s    85.76%
+        Req/Sec   282.89    122.02     1.00k    74.77%
+      Latency Distribution
+         50%  141.38ms
+         75%  386.30ms
+         90%  630.31ms
+         99%    1.26s 
+      43561 requests in 20.08s, 9.52GB read
+      Socket errors: connect 0, read 0, write 0, timeout 100
+    Requests/sec:   2169.18
+    Transfer/sec:    485.47MB
+    
+    runtime.mallocgc
+    /usr/local/go/src/runtime/malloc.go
+    
+    Total:       1.39s      4.23s (flat, cum)  9.16%
+    
+    发现主动gc之后，可以减少gc的次数和gc调度
+      
+   
